@@ -1,0 +1,10 @@
+.git
+.venv
+.deps
+.tmp
+__pycache__
+*.py[cod]
+.env
+.env.*
+zhangdeng-workspaces
+outputs

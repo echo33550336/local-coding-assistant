@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>栈灯 · 本地 AI 编程助手</title>
+  <link rel="stylesheet" href="static/style.css?v=20261003-6">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="rail">
+      <div class="brand-mark">栈</div>
+      <button class="rail-icon active" title="工作区">▦</button>
+      <button class="rail-icon" title="设置" id="settingsBtn">⚙</button>
+      <div class="rail-bottom">LOCAL</div>
+    </aside>
+    <aside class="sidebar">
+      <div class="sidebar-head"><div><span class="eyebrow">LOCAL WORKSPACE</span><h1>项目文件</h1></div><span class="status-dot" title="仅在本机运行"></span></div>
+      <button class="choose-button" id="chooseFolder"><span>＋</span> 选择项目文件夹</button>
+      <div class="workspace-path" id="workspacePath">尚未选择文件夹</div>
+      <div class="file-toolbar"><span>上下文文件</span><span id="fileCount">0</span></div>
+      <div class="file-search"><span>⌕</span><input id="fileSearch" placeholder="查找文件…"></div>
+      <div class="file-list" id="fileList"><div class="empty-files">选择一个文件夹<br>开始浏览项目</div></div>
+      <div class="sidebar-foot"><span class="shield">◇</span><span>文件只在你选择的目录内读取</span></div>
+    </aside>
+    <main class="main">
+      <header class="topbar"><div class="crumb"><span>工作区</span><b>/</b><strong id="projectName">新会话</strong></div><div class="top-actions"><span class="local-pill"><i></i> 本机模式</span><button class="quiet-button" id="newChat">＋ 新会话</button><div class="avatar">我</div></div></header>
+      <section class="conversation" id="conversation">
+        <div class="welcome" id="welcome">
+          <div class="welcome-icon"><span>⌘</span><i>✳</i></div>
+          <div class="welcome-kicker">LOCAL CODING ASSISTANT</div>
+          <h2>让我们一起把代码<br><em>变成更好的代码。</em></h2>
+          <p>选择项目文件夹，勾选想让助手参考的文件，然后描述你要完成的任务。</p>
+          <div class="suggestions">
+            <button class="suggestion" data-prompt="帮我梳理这个项目的结构，并指出最重要的入口文件。"><span>⌘</span><div><b>理解项目</b><small>梳理结构与关键入口</small></div><span class="arrow">↗</span></button>
+            <button class="suggestion" data-prompt="检查所选文件，找出明显的 bug 或可以改进的地方，并给出修改建议。"><span>⌕</span><div><b>检查代码</b><small>寻找问题与改进空间</small></div><span class="arrow">↗</span></button>
+            <button class="suggestion" data-prompt="为这个项目补充清晰的注释和文档，尽量保持现有风格。"><span>✎</span><div><b>补充文档</b><small>让代码更容易理解</small></div><span class="arrow">↗</span></button>
+          </div>
+        </div>
+        <div class="messages" id="messages"></div>
+        <div class="composer-wrap">
+          <form class="composer" id="chatForm">
+            <textarea id="prompt" rows="1" placeholder="描述你想完成的编程任务…" disabled></textarea>
+            <div class="composer-bottom"><div class="composer-hint"><span>↳</span> 修改建议会先展示供你审阅</div><button class="send-button" id="sendBtn" type="submit" disabled><span>发送</span><b>↑</b></button></div>
+          </form>
+          <div class="composer-note">AI 生成的内容可能需要检查。应用修改前请先查看差异。</div>
+        </div>
+      </section>
+    </main>
+  </div>
+  <div class="toast" id="toast"></div>
+  <dialog id="settingsDialog"><form method="dialog"><button class="dialog-close" aria-label="关闭">×</button><div class="dialog-kicker">连接设置</div><h2>模型接口</h2><p>密钥通过启动终端里的环境变量读取，不会保存在浏览器或项目中。</p><div class="setting-row"><span>API 密钥</span><code>OPENAI_API_KEY</code></div><div class="setting-row"><span>模型名称（可选）</span><code>OPENAI_MODEL</code></div><div class="dialog-tip">先设置环境变量，再重新启动本地助手。默认模型：gpt-5</div><button class="dialog-done">完成</button></form></dialog>
+
+</body>
+</html>
