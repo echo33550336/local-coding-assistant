@@ -1,64 +1,64 @@
-# 栈灯｜基于 DeepSeek 的 AI 编程助手
+# Stack Lamp | DeepSeek-Powered AI Coding Assistant
 
-栈灯把 AI 带进本地项目：选择需要参考的文件，描述开发任务，查看生成的改动差异后，再决定是否应用。项目文件默认在本机读取和写回；只有你勾选的文件会发送给 DeepSeek API。
+Stack Lamp brings AI into your local project. Select the files relevant to your task, describe what you want to do, and review the proposed diff before applying it. By default, project files are read and updated on your machine; only the files you select are sent to the DeepSeek API.
 
-默认使用 DeepSeek API 和 `deepseek-flash` 模型。本地使用不需要注册栈灯账号或部署服务器；也可以配置 Supabase 启用云端账号模式。这个仓库提供源代码，在线服务需要自行部署。
+Stack Lamp uses DeepSeek and the `deepseek-flash` model by default. Local use requires no Stack Lamp account or server deployment. You can optionally configure Supabase to enable cloud accounts. This repository contains the source code; it does not host a public online service.
 
-## 能做什么
+## Features
 
-- 浏览项目文件，并按需选择要提供给模型的文件。
-- 请 AI 梳理代码、排查问题、实现小功能或补充文档。
-- 先查看完整改动，再决定是否应用到项目。
-- 在需要时配置 Supabase，启用云端登录和按账号隔离的临时工作区。
+- Browse project files and choose which files to include in a request.
+- Ask the assistant to explain code, investigate issues, implement small changes, or improve documentation.
+- Review complete file diffs before deciding whether to apply changes.
+- Optionally enable cloud login and isolated temporary workspaces with Supabase.
 
-## 本地启动
+## Run Locally
 
-需要 Python 3.10 或更新版本，以及 DeepSeek API Key。第一次启动时会安装项目依赖。
+You need Python 3.10 or later and a DeepSeek API key. Dependencies are installed on the first launch.
 
-在 PowerShell 中运行：
+In PowerShell, run:
 
 ```powershell
-$env:DEEPSEEK_API_KEY = "你的 DeepSeek API Key"
-Set-Location "local-coding-assistant 文件夹路径"
+$env:DEEPSEEK_API_KEY = "your DeepSeek API key"
+Set-Location "path\to\local-coding-assistant"
 .\启动助手.ps1
 ```
 
-栈灯会打开 `http://127.0.0.1:8765`。默认模型是 `deepseek-flash`，API 地址是 `https://api.deepseek.com`。需要时可以在启动前设置 `DEEPSEEK_MODEL`、`DEEPSEEK_BASE_URL` 或 `DEEPSEEK_REASONING_EFFORT`。可参考 [`.env.example`](.env.example) 配置变量；不要把真实密钥提交到 GitHub。
+Stack Lamp opens `http://127.0.0.1:8765`. The default model is `deepseek-flash`, and the API base URL is `https://api.deepseek.com`. You can set `DEEPSEEK_MODEL`, `DEEPSEEK_BASE_URL`, or `DEEPSEEK_REASONING_EFFORT` before launch. See [`.env.example`](.env.example) for the available variables. Never commit a real API key to GitHub.
 
-栈灯只会把你勾选的文本文件内容发送到所配置的模型服务。不要选择包含密码、访问令牌、客户资料等敏感信息的文件。模型输出也可能有误，应用前请检查 diff。
+Only the text files you select are sent to the configured model provider. Do not select files containing passwords, access tokens, customer data, or other sensitive information. Model output can be incorrect; review the diff before applying it.
 
-DeepSeek API 使用兼容 OpenAI Responses API 的请求格式。接口地址、模型名称和参数以 [DeepSeek 官方 API 文档](https://api-docs.deepseek.com/) 为准。
+The DeepSeek API supports the OpenAI Responses API format. See the [official DeepSeek API documentation](https://api-docs.deepseek.com/) for current endpoints, model names, and parameters.
 
-## 云端部署（可选）
+## Optional Cloud Deployment
 
-云端模式需要 Supabase Auth 与 Postgres。数据库初始化脚本位于 [`supabase/schema.sql`](supabase/schema.sql)。部署前先在 Supabase 配好注册方式、邮件验证及正式站点地址，再将项目部署到支持 Docker 的平台，并配置以下服务端环境变量：
+Cloud mode requires Supabase Auth and Postgres. The database setup script is [`supabase/schema.sql`](supabase/schema.sql). Configure registration, email verification, and the production site URL in Supabase, then deploy the project to a Docker-compatible platform with these server-side environment variables:
 
-| 变量 | 用途 |
+| Variable | Purpose |
 | --- | --- |
-| `APP_MODE` | 设置为 `public` 以启用云端账号模式 |
-| `SUPABASE_URL` | Supabase 项目地址 |
-| `SUPABASE_ANON_KEY` | Supabase 公共 anon key |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase 服务端密钥，只能保存在部署平台的服务端环境变量中 |
-| `DEEPSEEK_API_KEY` | DeepSeek 服务端 API Key |
-| `DEEPSEEK_MODEL` | 模型名称，默认 `deepseek-flash` |
-| `DEEPSEEK_BASE_URL` | API 地址，默认 `https://api.deepseek.com` |
-| `DEEPSEEK_REASONING_EFFORT` | 推理强度，默认 `low` |
+| `APP_MODE` | Set to `public` to enable cloud accounts |
+| `SUPABASE_URL` | Supabase project URL |
+| `SUPABASE_ANON_KEY` | Supabase public anon key |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase server key; keep it only in the hosting platform's server-side environment |
+| `DEEPSEEK_API_KEY` | Server-side DeepSeek API key |
+| `DEEPSEEK_MODEL` | Model name; defaults to `deepseek-flash` |
+| `DEEPSEEK_BASE_URL` | API base URL; defaults to `https://api.deepseek.com` |
+| `DEEPSEEK_REASONING_EFFORT` | Reasoning effort; defaults to `low` |
 
-Docker 启动时会监听平台提供的 `PORT`。公网部署请启用 HTTPS，并将生产域名加入 Supabase Auth 的站点和回调配置。模型密钥和 Supabase service role key 不能放进网页代码、客户端配置或公开仓库。
+The Docker container listens on the platform-provided `PORT`. Enable HTTPS and add the production domain to the Supabase Auth site and redirect URL settings. Never put model keys or the Supabase service role key in browser code, client-side settings, or a public repository.
 
-云端模式下，用户通过 ZIP 上传项目；每个账号有独立的临时工作区。ZIP 最大 25 MB，解压后最多 100 MB、5000 个文件。工作区连续 24 小时无访问后会清理。新账号默认每月可发起 20 次 AI 请求；目前按请求次数计量，真实月费支付尚未接入。
+In cloud mode, users upload projects as ZIP files. Each account gets a separate temporary workspace. ZIP uploads are limited to 25 MB; extracted contents are limited to 100 MB and 5,000 files. Workspaces are removed after 24 hours without activity. New accounts are limited to 20 AI requests per month by default. This is a request-count limit, not token-based billing. Subscription payments are not implemented yet.
 
-## 项目结构与技术栈
+## Tech Stack
 
-- Python、FastAPI、Uvicorn：本地和云端服务。
-- HTML、CSS、JavaScript：网页界面。
-- OpenAI Python SDK：调用 DeepSeek 兼容的 Responses API。
-- Supabase Auth、Postgres：云端模式的登录与额度管理（可选）。
-- Docker：云端部署（可选）。
+- Python, FastAPI, and Uvicorn for the local and cloud services.
+- HTML, CSS, and JavaScript for the web interface.
+- The OpenAI Python SDK to call DeepSeek's compatible Responses API.
+- Supabase Auth and Postgres for optional cloud login and request quotas.
+- Docker for optional cloud deployment.
 
-## 开发提示
+## Development Notes
 
-- 本地模式默认只绑定 `127.0.0.1`，仅本机可访问。
-- 服务不会执行项目里的程序；应用修改时只写入允许的工作区文件。
-- 云端模型调用会把所选代码发送至部署配置的 DeepSeek API 账号。上线前应明确告知使用者数据处理方式，并按需设置隐私说明和服务条款。
-- 会员支付、套餐自动续费和支付回调目前未实现。
+- Local mode binds to `127.0.0.1` by default and is accessible only from the local machine.
+- The service does not execute project code. Applying a change only writes to files allowed in the workspace.
+- In cloud mode, selected source code is sent to the DeepSeek API account configured by the deployment. Before launch, explain how user data is processed and provide any required privacy information and terms of service.
+- Subscription billing, recurring payments, and payment callbacks are not implemented.
