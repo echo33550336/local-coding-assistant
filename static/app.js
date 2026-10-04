@@ -54,7 +54,7 @@ $("#projectZip").addEventListener("change",async(event)=>{
   const form=new FormData();form.append("file",file);
   try{const data=await api("/api/workspace/upload",{method:"POST",body:form});setWorkspace(data.path,data.files);}
   catch(err){toast(err.message)}
-  finally{button.disabled=false;button.innerHTML="<span>＋</span> 上传项目 ZIP";event.target.value="";}
+  finally{button.disabled=false;button.innerHTML="<span>＋</span> 上传项目压缩包";event.target.value="";}
 });
 $("#accountButton").addEventListener("click",async()=>{
   if(!state.publicMode)return;
@@ -79,9 +79,9 @@ $("#authForm").addEventListener("submit",e=>{e.preventDefault();submitAuth(false
 $("#registerButton").addEventListener("click",()=>submitAuth(true));
 function showApiKeyStatus(settings){
   const status=$("#apiKeyStatus");
-  if(!settings.api_key_configured){status.textContent="尚未配置。填写你自己的 Key 后保存到本机。";return;}
+  if(!settings.api_key_configured){status.textContent="尚未配置。填写你自己的接口密钥后保存到本机。";return;}
   status.textContent=settings.api_key_source==="environment"
-    ?"已从 DEEPSEEK_API_KEY 环境变量读取。"
+    ?"已从环境变量读取接口密钥。"
     :"已保存在本机用户配置目录中，不会提交到 GitHub。";
 }
 async function refreshLocalSettings(){
@@ -91,12 +91,12 @@ async function refreshLocalSettings(){
 }
 async function saveApiKey(){
   const input=$("#deepseekApiKey"),button=$("#saveApiKey"),key=input.value.trim();
-  if(!key){$("#apiKeyStatus").textContent="请先粘贴 DeepSeek API Key。";input.focus();return;}
+  if(!key){$("#apiKeyStatus").textContent="请先粘贴 DeepSeek 接口密钥。";input.focus();return;}
   button.disabled=true;button.textContent="保存中…";
   try{
     const settings=await api("/api/settings",{method:"POST",body:JSON.stringify({deepseek_api_key:key})});
     input.value="";$("#settingsModel").textContent=settings.model||"deepseek-flash";showApiKeyStatus(settings);
-    toast("API Key 已保存在本机");
+    toast("接口密钥已保存在本机");
   }catch(err){$("#apiKeyStatus").textContent=err.message;}
   finally{button.disabled=false;button.textContent="保存";}
 }
@@ -108,7 +108,7 @@ $("#settingsBtn").addEventListener("click",async()=>{
   $("#settingsDialog").showModal();
   if(state.publicMode){
     $("#localApiSettings").hidden=true;
-    $("#settingsDescription").textContent="云端部署使用服务器环境变量中的 DeepSeek API Key。";
+    $("#settingsDescription").textContent="云端部署使用服务器环境变量中配置的 DeepSeek 接口密钥。";
     return;
   }
   $("#localApiSettings").hidden=false;
@@ -133,7 +133,7 @@ function diffHtml(diff){return esc(diff||"（没有文本差异）").split("\n")
 function addEdits(host,edits){
   for(const edit of edits){
     const card=document.createElement("div");card.className="edit-card";
-    card.innerHTML=`<div class="edit-head"><span class="file-icon">EDIT</span><span>${esc(edit.path)}</span><small>待审阅</small></div><pre class="diff">${diffHtml(edit.diff)}</pre><div class="edit-actions"><button class="discard">忽略</button><button class="apply">应用修改</button></div>`;
+    card.innerHTML=`<div class="edit-head"><span class="file-icon">改动</span><span>${esc(edit.path)}</span><small>待审阅</small></div><pre class="diff">${diffHtml(edit.diff)}</pre><div class="edit-actions"><button class="discard">忽略</button><button class="apply">应用修改</button></div>`;
     card.querySelector(".discard").addEventListener("click",()=>card.remove());
     card.querySelector(".apply").addEventListener("click",async(event)=>{
       const button=event.currentTarget;button.disabled=true;button.textContent="应用中…";
@@ -208,11 +208,11 @@ async function boot(){
       $("#localApiSettings").hidden=true;
       $("#modeEyebrow").textContent="云端工作区";
       $("#modePill").innerHTML="<i></i> 云端工作区";
-      $("#chooseFolder").innerHTML="<span>＋</span> 上传项目 ZIP";
-      $("#sidebarSafety").textContent="ZIP 临时隔离保存，24 小时无访问后清除";
-      $("#welcome p").textContent="上传项目 ZIP 开始使用。文件按账号隔离并临时保存；只有你勾选的文件会发送给 DeepSeek。先检查 diff，确认后再应用。";
+      $("#chooseFolder").innerHTML="<span>＋</span> 上传项目压缩包";
+      $("#sidebarSafety").textContent="上传文件单独隔离保存，24 小时无访问后清除";
+      $("#welcome p").textContent="上传项目压缩包开始使用。文件按账号隔离并临时保存；只有你勾选的文件会发送给 DeepSeek。先检查修改差异，确认后再应用。";
       $("#accountButton").textContent="账";$("#accountButton").title="点击退出账号";
-      $("#settingsDescription").textContent="DeepSeek API Key 只保存在服务端环境变量中，不会发送到浏览器。";
+    $("#settingsDescription").textContent="云端部署使用服务端环境变量中配置的 DeepSeek 接口密钥。";
       $("#settingsModel").textContent=config.model||"deepseek-flash";
       if(!config.auth_enabled){$("#authError").textContent="服务暂未完成登录配置，请稍后再试。";$("#authGate").hidden=false;return;}
       const query=new URLSearchParams(location.search),tokenHash=query.get("token_hash"),verifyType=query.get("type");
@@ -229,7 +229,7 @@ async function boot(){
       return;
     }
     const session=await fetch("/api/session");const data=await session.json();state.token=data.token;
-    $("#settingsDescription").textContent="填写你自己的 Key。栈灯会把它保存在本机用户配置目录中，并只在调用 DeepSeek 时使用。";
+    $("#settingsDescription").textContent="填写你自己的密钥。栈灯会把它保存在本机用户配置目录中，并只在调用 DeepSeek 时使用。";
     $("#settingsModel").textContent=data.model||"deepseek-flash";
     await refreshLocalSettings();
   }catch(err){toast(err.message||"无法连接服务，请稍后重试");}

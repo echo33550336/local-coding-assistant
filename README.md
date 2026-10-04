@@ -1,5 +1,7 @@
 # Stack Lamp | Self-Hosted AI Coding Assistant
 
+## Introduction
+
 Stack Lamp is a local-first AI coding assistant powered by DeepSeek. Each user brings their own API key and runs the app on their own machine. Select project files, describe a task, review the proposed diff, and apply changes when ready.
 
 This repository provides the application source code. It does not include a shared Stack Lamp-hosted service or pay for users' model requests. DeepSeek API usage is billed to the account associated with each user's key.

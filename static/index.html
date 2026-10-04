@@ -36,10 +36,10 @@
           <div class="welcome-icon"><span>⌘</span><i>✳</i></div>
           <div class="welcome-kicker">栈灯 · AI 编程搭档</div>
           <h2>把需求说清楚，<br><em>让改动可审查。</em></h2>
-          <p>选择项目目录，勾选要提供给 AI 的文件，再描述你的需求。先看 diff，确认后再写入。</p>
+          <p>选择项目目录，勾选要提供给 AI 的文件，再描述你的需求。先看修改差异，确认后再写入。</p>
           <div class="suggestions">
             <button class="suggestion" data-prompt="先梳理这个项目的目录结构、启动入口和主要调用链，结论尽量结合文件说明。"><span>⌘</span><div><b>梳理项目</b><small>入口、模块和调用关系</small></div><span class="arrow">↗</span></button>
-            <button class="suggestion" data-prompt="检查我选中的文件，优先找可能导致错误或安全问题的点。说明原因，并给出必要的修改。"><span>⌕</span><div><b>代码走查</b><small>定位问题并说明依据</small></div><span class="arrow">↗</span></button>
+            <button class="suggestion" data-prompt="检查我选中的文件，优先找可能导致程序错误或安全问题的点。说明原因，并给出必要的修改。"><span>⌕</span><div><b>代码走查</b><small>定位问题并说明依据</small></div><span class="arrow">↗</span></button>
             <button class="suggestion" data-prompt="为选中的文件补充必要的中文注释或文档，保留项目现有的命名和代码风格。"><span>✎</span><div><b>补充说明</b><small>贴合现有项目风格</small></div><span class="arrow">↗</span></button>
           </div>
         </div>
@@ -67,10 +67,10 @@
       <div class="auth-error" id="authError" role="status"></div>
       <button class="send-button auth-submit" type="submit" id="authSubmit">登录</button>
       <button class="auth-register" type="button" id="registerButton">创建账号</button>
-      <small>注册后可上传项目 ZIP。文件按账号隔离并临时保存在服务器；只有你勾选的文件会发送给部署时配置的 DeepSeek 服务。</small>
+      <small>注册后可上传项目压缩包。文件按账号隔离并临时保存在服务器；只有你勾选的文件会发送给部署时配置的 DeepSeek 服务。</small>
     </form>
   </div>
-  <dialog id="settingsDialog"><form id="settingsForm"><button class="dialog-close" id="settingsClose" type="button" aria-label="关闭">×</button><div class="dialog-kicker">本机设置</div><h2>DeepSeek API Key</h2><p id="settingsDescription">填写你自己的 API Key；栈灯会将它保存在本机。</p><div id="localApiSettings"><label class="setting-label" for="deepseekApiKey">你的 API Key</label><div class="api-key-entry"><input id="deepseekApiKey" type="password" autocomplete="new-password" maxlength="512" placeholder="粘贴 DeepSeek API Key"><button id="saveApiKey" type="button">保存</button></div><div class="api-key-status" id="apiKeyStatus" role="status">尚未配置</div></div><div class="setting-row"><span>当前模型</span><code id="settingsModel">deepseek-flash</code></div><div class="dialog-tip">Key 保存在本机用户配置目录中，不会提交到 GitHub。你勾选的代码仍会发送给 DeepSeek。</div><button class="dialog-done" id="settingsDone" type="button">完成</button></form></dialog>
+  <dialog id="settingsDialog"><form id="settingsForm"><button class="dialog-close" id="settingsClose" type="button" aria-label="关闭">×</button><div class="dialog-kicker">本机设置</div><h2>DeepSeek 接口密钥</h2><p id="settingsDescription">填写你自己的密钥；栈灯会将它保存在本机。</p><div id="localApiSettings"><label class="setting-label" for="deepseekApiKey">DeepSeek 接口密钥</label><div class="api-key-entry"><input id="deepseekApiKey" type="password" autocomplete="new-password" maxlength="512" placeholder="粘贴 DeepSeek 接口密钥"><button id="saveApiKey" type="button">保存</button></div><div class="api-key-status" id="apiKeyStatus" role="status">尚未配置</div></div><div class="setting-row"><span>当前模型</span><code id="settingsModel">deepseek-flash</code></div><div class="dialog-tip">密钥保存在本机用户配置目录中，不会提交到 GitHub。你勾选的代码仍会发送给 DeepSeek。</div><button class="dialog-done" id="settingsDone" type="button">完成</button></form></dialog>
   <script src="/static/app.js?v=20261004-byok1"></script>
 </body>
 </html>
