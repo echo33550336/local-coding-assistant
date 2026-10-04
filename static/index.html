@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <title>栈灯 · AI 编程助手</title>
-  <link rel="stylesheet" href="/static/style.css?v=20261004-byok1">
+  <link rel="stylesheet" href="/static/style.css?v=20261004-personal-api">
 </head>
 <body>
   <div class="app-shell">
@@ -67,10 +67,10 @@
       <div class="auth-error" id="authError" role="status"></div>
       <button class="send-button auth-submit" type="submit" id="authSubmit">登录</button>
       <button class="auth-register" type="button" id="registerButton">创建账号</button>
-      <small>注册后可上传项目压缩包。文件按账号隔离并临时保存在服务器；只有你勾选的文件会发送给部署时配置的 DeepSeek 服务。</small>
+      <small>注册后可上传项目压缩包。文件按账号隔离并临时保存在服务器；只有你勾选的文件会发送给部署时配置的模型服务。</small>
     </form>
   </div>
-  <dialog id="settingsDialog"><form id="settingsForm"><button class="dialog-close" id="settingsClose" type="button" aria-label="关闭">×</button><div class="dialog-kicker">本机设置</div><h2>DeepSeek 接口密钥</h2><p id="settingsDescription">填写你自己的密钥；栈灯会将它保存在本机。</p><div id="localApiSettings"><label class="setting-label" for="deepseekApiKey">DeepSeek 接口密钥</label><div class="api-key-entry"><input id="deepseekApiKey" type="password" autocomplete="new-password" maxlength="512" placeholder="粘贴 DeepSeek 接口密钥"><button id="saveApiKey" type="button">保存</button></div><div class="api-key-status" id="apiKeyStatus" role="status">尚未配置</div></div><div class="setting-row"><span>当前模型</span><code id="settingsModel">deepseek-flash</code></div><div class="dialog-tip">密钥保存在本机用户配置目录中，不会提交到 GitHub。你勾选的代码仍会发送给 DeepSeek。</div><button class="dialog-done" id="settingsDone" type="button">完成</button></form></dialog>
-  <script src="/static/app.js?v=20261004-byok1"></script>
+  <dialog id="settingsDialog"><form id="settingsForm"><button class="dialog-close" id="settingsClose" type="button" aria-label="关闭">×</button><div class="dialog-kicker">本机设置</div><h2>用户个人 API</h2><p id="settingsDescription">填写你自己的模型 API 信息；栈灯会将它保存在本机。</p><div id="localApiSettings"><label class="setting-label" for="modelApiKey">API 密钥</label><div class="api-key-entry"><input id="modelApiKey" type="password" autocomplete="new-password" maxlength="512" placeholder="粘贴你的个人 API 密钥"></div><label class="setting-label" for="modelBaseUrl">API 接口地址</label><input id="modelBaseUrl" class="model-setting-input" type="url" maxlength="500" placeholder="https://你的模型服务地址/v1"><label class="setting-label" for="modelName">模型名称</label><input id="modelName" class="model-setting-input" type="text" maxlength="200" placeholder="填写服务商提供的模型名称"><div class="api-key-entry"><button id="saveApiKey" type="button">保存设置</button></div><div class="api-key-status" id="apiKeyStatus" role="status">尚未配置</div></div><div class="setting-row"><span>当前模型</span><code id="settingsModel">未配置</code></div><div class="dialog-tip">API 信息保存在本机用户配置目录中，不会提交到 GitHub。你勾选的代码会发送给对应的模型服务。</div><button id="settingsDone" type="button" class="dialog-done">完成</button></form></dialog>
+  <script src="/static/app.js?v=20261004-personal-api"></script>
 </body>
 </html>

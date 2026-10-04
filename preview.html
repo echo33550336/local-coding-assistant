@@ -48,7 +48,7 @@
     </main>
   </div>
   <div class="toast" id="toast"></div>
-  <dialog id="settingsDialog"><form method="dialog"><button class="dialog-close" aria-label="关闭">×</button><div class="dialog-kicker">本机设置</div><h2>DeepSeek 接口密钥</h2><p>填写自己的密钥，栈灯会保存在本机用户配置目录中。</p><label class="setting-label" for="deepseekApiKey">DeepSeek 接口密钥</label><div class="api-key-entry"><input id="deepseekApiKey" type="password" placeholder="粘贴 DeepSeek 接口密钥"><button type="button">保存</button></div><div class="api-key-status">密钥不会提交到项目仓库；你勾选的代码会发送给 DeepSeek。</div><div class="setting-row"><span>当前模型</span><code>deepseek-flash</code></div><button class="dialog-done">完成</button></form></dialog>
+  <dialog id="settingsDialog"><form method="dialog"><button class="dialog-close" aria-label="关闭">×</button><div class="dialog-kicker">本机设置</div><h2>用户个人 API</h2><p>填写你自己的模型 API 信息，栈灯会将它保存在本机。</p><label class="setting-label" for="modelApiKey">API 密钥</label><div class="api-key-entry"><input id="modelApiKey" type="password" placeholder="粘贴你的个人 API 密钥"><button type="button">保存设置</button></div><label class="setting-label" for="modelBaseUrl">API 接口地址</label><input id="modelBaseUrl" type="url" placeholder="https://你的模型服务地址/v1"><label class="setting-label" for="modelName">模型名称</label><input id="modelName" type="text" placeholder="填写服务商提供的模型名称"><div class="api-key-status">API 信息不会提交到项目仓库；你勾选的代码会发送给对应的模型服务。</div><div class="setting-row"><span>当前模型</span><code>未配置</code></div><button class="dialog-done">完成</button></form></dialog>
 
 </body>
 </html>

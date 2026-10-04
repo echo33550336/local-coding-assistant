@@ -138,20 +138,33 @@ class VerifyEmail(BaseModel):
 
 
 class LocalSettingsRequest(BaseModel):
-    deepseek_api_key: str = Field(min_length=8, max_length=512)
+    api_key: str = Field(min_length=8, max_length=512)
+    base_url: str = Field(min_length=8, max_length=500)
+    model: str = Field(min_length=1, max_length=200)
 
 
-def get_deepseek_api_key() -> tuple[str, str]:
+def get_model_settings() -> dict[str, str]:
+    saved: dict[str, Any] = {}
     if not PUBLIC_MODE:
         try:
-            settings = json.loads(LOCAL_SETTINGS_PATH.read_text(encoding="utf-8"))
-            local_key = str(settings.get("deepseek_api_key", "")).strip()
+            saved = json.loads(LOCAL_SETTINGS_PATH.read_text(encoding="utf-8"))
         except (OSError, ValueError, AttributeError):
-            local_key = ""
-        if local_key:
-            return local_key, "local settings"
-    env_key = os.environ.get("DEEPSEEK_API_KEY", "").strip()
-    return env_key, "environment" if env_key else ""
+            saved = {}
+    if not isinstance(saved, dict):
+        saved = {}
+    env_key = os.environ.get("MODEL_API_KEY", os.environ.get("DEEPSEEK_API_KEY", "")).strip()
+    api_key = str(saved.get("api_key", saved.get("deepseek_api_key", ""))).strip() or env_key
+    source = "local settings" if saved.get("api_key") or saved.get("deepseek_api_key") else ("environment" if env_key else "")
+    return {
+        "api_key": api_key,
+        "api_key_source": source,
+        "base_url": str(saved.get("base_url") or os.environ.get("MODEL_BASE_URL", os.environ.get("DEEPSEEK_BASE_URL", ""))).strip(),
+        "model": str(saved.get("model") or os.environ.get("MODEL_NAME", os.environ.get("DEEPSEEK_MODEL", ""))).strip(),
+    }
+
+
+def get_model_name() -> str:
+    return get_model_settings()["model"]
 
 
 def require_local_session(request: Request) -> None:
@@ -365,7 +378,7 @@ def index():
 def auth_config():
     return {"public_mode": PUBLIC_MODE,
             "auth_enabled": (AUTH_READY and QUOTA_READY) if PUBLIC_MODE else False,
-            "model": os.environ.get("DEEPSEEK_MODEL", "deepseek-flash")}
+            "model": get_model_name()}
 
 
 @app.post("/api/auth/register")
@@ -471,18 +484,18 @@ def me(user: dict[str, Any] = Depends(current_user)):
 def get_session():
     if PUBLIC_MODE:
         return {"public_mode": True,
-                "model": os.environ.get("DEEPSEEK_MODEL", "deepseek-flash")}
+                "model": get_model_name()}
     return {"token": SESSION_TOKEN, "public_mode": False,
-            "model": os.environ.get("DEEPSEEK_MODEL", "deepseek-flash")}
+            "model": get_model_name()}
 
 
 @app.get("/api/settings")
 def get_local_settings(user: dict[str, Any] = Depends(current_user)):
     if PUBLIC_MODE:
         raise HTTPException(status_code=404, detail="本机密钥设置仅在本地模式下可用")
-    api_key, source = get_deepseek_api_key()
-    return {"api_key_configured": bool(api_key), "api_key_source": source,
-            "model": os.environ.get("DEEPSEEK_MODEL", "deepseek-flash")}
+    settings = get_model_settings()
+    return {"api_key_configured": bool(settings["api_key"]), "api_key_source": settings["api_key_source"],
+            "base_url": settings["base_url"], "model": settings["model"]}
 
 
 @app.post("/api/settings")
@@ -490,20 +503,26 @@ def save_local_settings(request: LocalSettingsRequest,
                         user: dict[str, Any] = Depends(current_user)):
     if PUBLIC_MODE:
         raise HTTPException(status_code=404, detail="本机密钥设置仅在本地模式下可用")
-    api_key = request.deepseek_api_key.strip()
+    api_key = request.api_key.strip()
     if len(api_key) < 8:
-        raise HTTPException(status_code=400, detail="请填写有效的 DeepSeek API Key")
+        raise HTTPException(status_code=400, detail="请填写有效的个人 API 密钥")
+    base_url = request.base_url.strip().rstrip("/")
+    model = request.model.strip()
+    if not base_url.startswith(("https://", "http://")):
+        raise HTTPException(status_code=400, detail="接口地址需以 http:// 或 https:// 开头")
     SETTINGS_DIR.mkdir(parents=True, exist_ok=True)
     temp_path = LOCAL_SETTINGS_PATH.with_suffix(".json.tmp")
-    temp_path.write_text(json.dumps({"deepseek_api_key": api_key}), encoding="utf-8")
+    temp_path.write_text(json.dumps({"api_key": api_key, "base_url": base_url, "model": model}), encoding="utf-8")
     try:
         os.chmod(temp_path, stat.S_IRUSR | stat.S_IWUSR)
     except OSError:
         pass
     os.replace(temp_path, LOCAL_SETTINGS_PATH)
-    os.environ["DEEPSEEK_API_KEY"] = api_key
+    os.environ["MODEL_API_KEY"] = api_key
+    os.environ["MODEL_BASE_URL"] = base_url
+    os.environ["MODEL_NAME"] = model
     return {"api_key_configured": True, "api_key_source": "local settings",
-            "model": os.environ.get("DEEPSEEK_MODEL", "deepseek-flash")}
+            "base_url": base_url, "model": model}
 
 
 @app.post("/api/pick-folder")
@@ -628,9 +647,12 @@ def read_file(path: str, user: dict[str, Any] = Depends(current_user)):
 
 @app.post("/api/chat")
 def chat(request: ChatRequest, user: dict[str, Any] = Depends(current_user)):
-    api_key, _ = get_deepseek_api_key()
+    model_settings = get_model_settings()
+    api_key = model_settings["api_key"]
     if not api_key:
-        raise HTTPException(status_code=503, detail="请先在设置中填写你自己的 DeepSeek API Key")
+        raise HTTPException(status_code=503, detail="请先在设置中填写你的个人 API 密钥")
+    if not model_settings["base_url"] or not model_settings["model"]:
+        raise HTTPException(status_code=503, detail="请先填写 API 接口地址和模型名称")
     base = get_workspace(user["id"])
     included: list[dict[str, str]] = []
     for relative in dict.fromkeys(request.files):
@@ -646,8 +668,8 @@ def chat(request: ChatRequest, user: dict[str, Any] = Depends(current_user)):
             included.pop()
             break
     quota = reserve_request(user["id"])
-    model = os.environ.get("DEEPSEEK_MODEL", "deepseek-flash")
-    effort = os.environ.get("DEEPSEEK_REASONING_EFFORT", "low")
+    model = model_settings["model"]
+    effort = os.environ.get("MODEL_REASONING_EFFORT", os.environ.get("DEEPSEEK_REASONING_EFFORT", "low"))
     instructions = (
         "你是栈灯，一名熟悉中国大陆软件开发场景的中文 AI 编程搭档。默认使用简体中文，表达直接、清楚、务实，像和同事做代码评审；保留常见英文技术术语。"
         "先理解用户要解决的问题，再结合已提供的文件给出可执行的方案。信息不足且会影响实现时再提问；不要空泛寒暄、夸张承诺或重复用户的话。"
@@ -663,7 +685,7 @@ def chat(request: ChatRequest, user: dict[str, Any] = Depends(current_user)):
         try:
             client = OpenAI(
                 api_key=api_key,
-                base_url=os.environ.get("DEEPSEEK_BASE_URL", "https://api.deepseek.com"),
+                base_url=model_settings["base_url"],
             )
             stream = client.responses.create(
                 model=model,

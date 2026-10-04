@@ -86,17 +86,21 @@ function showApiKeyStatus(settings){
 }
 async function refreshLocalSettings(){
   const settings=await api("/api/settings");
-  $("#settingsModel").textContent=settings.model||"deepseek-flash";
+  $("#settingsModel").textContent=settings.model||"未配置";
+  $("#modelBaseUrl").value=settings.base_url||"";
+  $("#modelName").value=settings.model||"";
   showApiKeyStatus(settings);
 }
 async function saveApiKey(){
-  const input=$("#deepseekApiKey"),button=$("#saveApiKey"),key=input.value.trim();
-  if(!key){$("#apiKeyStatus").textContent="请先粘贴 DeepSeek 接口密钥。";input.focus();return;}
+  const input=$("#modelApiKey"),button=$("#saveApiKey"),key=input.value.trim();
+  const baseUrl=$("#modelBaseUrl").value.trim(),model=$("#modelName").value.trim();
+  if(!key){$("#apiKeyStatus").textContent="请先填写你的个人 API 密钥。";input.focus();return;}
+  if(!baseUrl||!model){$("#apiKeyStatus").textContent="请填写 API 接口地址和模型名称。";return;}
   button.disabled=true;button.textContent="保存中…";
   try{
-    const settings=await api("/api/settings",{method:"POST",body:JSON.stringify({deepseek_api_key:key})});
-    input.value="";$("#settingsModel").textContent=settings.model||"deepseek-flash";showApiKeyStatus(settings);
-    toast("接口密钥已保存在本机");
+    const settings=await api("/api/settings",{method:"POST",body:JSON.stringify({api_key:key,base_url:baseUrl,model})});
+    input.value="";$("#settingsModel").textContent=settings.model||"未配置";showApiKeyStatus(settings);
+    toast("个人 API 设置已保存在本机");
   }catch(err){$("#apiKeyStatus").textContent=err.message;}
   finally{button.disabled=false;button.textContent="保存";}
 }
@@ -108,7 +112,7 @@ $("#settingsBtn").addEventListener("click",async()=>{
   $("#settingsDialog").showModal();
   if(state.publicMode){
     $("#localApiSettings").hidden=true;
-    $("#settingsDescription").textContent="云端部署使用服务器环境变量中配置的 DeepSeek 接口密钥。";
+    $("#settingsDescription").textContent="云端部署使用运营者在服务器环境变量中配置的模型 API。";
     return;
   }
   $("#localApiSettings").hidden=false;
@@ -210,10 +214,10 @@ async function boot(){
       $("#modePill").innerHTML="<i></i> 云端工作区";
       $("#chooseFolder").innerHTML="<span>＋</span> 上传项目压缩包";
       $("#sidebarSafety").textContent="上传文件单独隔离保存，24 小时无访问后清除";
-      $("#welcome p").textContent="上传项目压缩包开始使用。文件按账号隔离并临时保存；只有你勾选的文件会发送给 DeepSeek。先检查修改差异，确认后再应用。";
+      $("#welcome p").textContent="上传项目压缩包开始使用。文件按账号隔离并临时保存；只有你勾选的文件会发送给运营者配置的模型服务。先检查修改差异，确认后再应用。";
       $("#accountButton").textContent="账";$("#accountButton").title="点击退出账号";
-    $("#settingsDescription").textContent="云端部署使用服务端环境变量中配置的 DeepSeek 接口密钥。";
-      $("#settingsModel").textContent=config.model||"deepseek-flash";
+    $("#settingsDescription").textContent="云端部署使用运营者在服务端环境变量中配置的模型 API。";
+      $("#settingsModel").textContent=config.model||"未配置";
       if(!config.auth_enabled){$("#authError").textContent="服务暂未完成登录配置，请稍后再试。";$("#authGate").hidden=false;return;}
       const query=new URLSearchParams(location.search),tokenHash=query.get("token_hash"),verifyType=query.get("type");
       if(tokenHash&&["signup","email"].includes(verifyType)){
@@ -229,8 +233,8 @@ async function boot(){
       return;
     }
     const session=await fetch("/api/session");const data=await session.json();state.token=data.token;
-    $("#settingsDescription").textContent="填写你自己的密钥。栈灯会把它保存在本机用户配置目录中，并只在调用 DeepSeek 时使用。";
-    $("#settingsModel").textContent=data.model||"deepseek-flash";
+    $("#settingsDescription").textContent="填写你自己的 API 信息。栈灯会把它保存在本机用户配置目录中并用于模型调用。";
+    $("#settingsModel").textContent=data.model||"未配置";
     await refreshLocalSettings();
   }catch(err){toast(err.message||"无法连接服务，请稍后重试");}
 }
