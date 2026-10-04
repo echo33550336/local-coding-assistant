@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <title>栈灯 · AI 编程助手</title>
-  <link rel="stylesheet" href="/static/style.css?v=20261004-deepseek1">
+  <link rel="stylesheet" href="/static/style.css?v=20261004-byok1">
 </head>
 <body>
   <div class="app-shell">
@@ -70,7 +70,7 @@
       <small>注册后可上传项目 ZIP。文件按账号隔离并临时保存在服务器；只有你勾选的文件会发送给部署时配置的 DeepSeek 服务。</small>
     </form>
   </div>
-  <dialog id="settingsDialog"><form method="dialog"><button class="dialog-close" aria-label="关闭">×</button><div class="dialog-kicker">连接设置</div><h2>DeepSeek 模型</h2><p id="settingsDescription">API Key 只从服务端环境变量读取，不会发送到浏览器。</p><div class="setting-row"><span>当前模型</span><code id="settingsModel">deepseek-flash</code></div><div class="dialog-tip">每次请求只会发送你勾选的文件。应用前先检查 diff。</div><button class="dialog-done">完成</button></form></dialog>
-  <script src="/static/app.js?v=20261004-deepseek1"></script>
+  <dialog id="settingsDialog"><form id="settingsForm"><button class="dialog-close" id="settingsClose" type="button" aria-label="关闭">×</button><div class="dialog-kicker">本机设置</div><h2>DeepSeek API Key</h2><p id="settingsDescription">填写你自己的 API Key；栈灯会将它保存在本机。</p><div id="localApiSettings"><label class="setting-label" for="deepseekApiKey">你的 API Key</label><div class="api-key-entry"><input id="deepseekApiKey" type="password" autocomplete="new-password" maxlength="512" placeholder="粘贴 DeepSeek API Key"><button id="saveApiKey" type="button">保存</button></div><div class="api-key-status" id="apiKeyStatus" role="status">尚未配置</div></div><div class="setting-row"><span>当前模型</span><code id="settingsModel">deepseek-flash</code></div><div class="dialog-tip">Key 保存在本机用户配置目录中，不会提交到 GitHub。你勾选的代码仍会发送给 DeepSeek。</div><button class="dialog-done" id="settingsDone" type="button">完成</button></form></dialog>
+  <script src="/static/app.js?v=20261004-byok1"></script>
 </body>
 </html>

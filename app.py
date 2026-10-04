@@ -24,6 +24,11 @@ from pydantic import BaseModel, Field
 
 
 ROOT = Path(__file__).resolve().parent
+if os.name == "nt":
+    SETTINGS_DIR = Path(os.environ.get("LOCALAPPDATA", Path.home() / "AppData" / "Local")) / "StackLamp"
+else:
+    SETTINGS_DIR = Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config")) / "stacklamp"
+LOCAL_SETTINGS_PATH = SETTINGS_DIR / "settings.json"
 PUBLIC_MODE = os.environ.get("APP_MODE", "local").strip().lower() == "public"
 SESSION_TOKEN = secrets.token_urlsafe(32)
 LOCAL_STATE: dict[str, Path | None] = {"workspace": None}
@@ -39,7 +44,7 @@ MAX_ARCHIVE_BYTES = 25 * 1024 * 1024
 MAX_UNPACKED_BYTES = 100 * 1024 * 1024
 MAX_ARCHIVE_FILES = 5000
 OMIT_DIRS = {".git", ".hg", ".svn", "node_modules", ".venv", "venv", "__pycache__", "dist", "build"}
-OMIT_NAMES = {".env", ".env.local", ".env.production", "id_rsa", "id_ed25519", "credentials", "secrets.json"}
+OMIT_NAMES = {".env", ".env.local", ".env.production", ".stacklamp-settings.json", "id_rsa", "id_ed25519", "credentials", "secrets.json"}
 TEXT_SUFFIXES = {
     ".py", ".pyi", ".js", ".jsx", ".ts", ".tsx", ".mjs", ".cjs", ".json", ".jsonc", ".yaml", ".yml",
     ".toml", ".ini", ".cfg", ".md", ".mdx", ".txt", ".html", ".htm", ".css", ".scss", ".sass", ".less",
@@ -130,6 +135,23 @@ class Credentials(BaseModel):
 class VerifyEmail(BaseModel):
     token_hash: str = Field(min_length=16, max_length=500)
     type: str = Field(pattern="^(signup|email)$")
+
+
+class LocalSettingsRequest(BaseModel):
+    deepseek_api_key: str = Field(min_length=8, max_length=512)
+
+
+def get_deepseek_api_key() -> tuple[str, str]:
+    if not PUBLIC_MODE:
+        try:
+            settings = json.loads(LOCAL_SETTINGS_PATH.read_text(encoding="utf-8"))
+            local_key = str(settings.get("deepseek_api_key", "")).strip()
+        except (OSError, ValueError, AttributeError):
+            local_key = ""
+        if local_key:
+            return local_key, "local settings"
+    env_key = os.environ.get("DEEPSEEK_API_KEY", "").strip()
+    return env_key, "environment" if env_key else ""
 
 
 def require_local_session(request: Request) -> None:
@@ -454,6 +476,36 @@ def get_session():
             "model": os.environ.get("DEEPSEEK_MODEL", "deepseek-flash")}
 
 
+@app.get("/api/settings")
+def get_local_settings(user: dict[str, Any] = Depends(current_user)):
+    if PUBLIC_MODE:
+        raise HTTPException(status_code=404, detail="本机密钥设置仅在本地模式下可用")
+    api_key, source = get_deepseek_api_key()
+    return {"api_key_configured": bool(api_key), "api_key_source": source,
+            "model": os.environ.get("DEEPSEEK_MODEL", "deepseek-flash")}
+
+
+@app.post("/api/settings")
+def save_local_settings(request: LocalSettingsRequest,
+                        user: dict[str, Any] = Depends(current_user)):
+    if PUBLIC_MODE:
+        raise HTTPException(status_code=404, detail="本机密钥设置仅在本地模式下可用")
+    api_key = request.deepseek_api_key.strip()
+    if len(api_key) < 8:
+        raise HTTPException(status_code=400, detail="请填写有效的 DeepSeek API Key")
+    SETTINGS_DIR.mkdir(parents=True, exist_ok=True)
+    temp_path = LOCAL_SETTINGS_PATH.with_suffix(".json.tmp")
+    temp_path.write_text(json.dumps({"deepseek_api_key": api_key}), encoding="utf-8")
+    try:
+        os.chmod(temp_path, stat.S_IRUSR | stat.S_IWUSR)
+    except OSError:
+        pass
+    os.replace(temp_path, LOCAL_SETTINGS_PATH)
+    os.environ["DEEPSEEK_API_KEY"] = api_key
+    return {"api_key_configured": True, "api_key_source": "local settings",
+            "model": os.environ.get("DEEPSEEK_MODEL", "deepseek-flash")}
+
+
 @app.post("/api/pick-folder")
 def pick_folder(user: dict[str, Any] = Depends(current_user)):
     if PUBLIC_MODE:
@@ -576,9 +628,9 @@ def read_file(path: str, user: dict[str, Any] = Depends(current_user)):
 
 @app.post("/api/chat")
 def chat(request: ChatRequest, user: dict[str, Any] = Depends(current_user)):
-    api_key = os.environ.get("DEEPSEEK_API_KEY")
+    api_key, _ = get_deepseek_api_key()
     if not api_key:
-        raise HTTPException(status_code=503, detail="请先配置 DEEPSEEK_API_KEY，再重启栈灯")
+        raise HTTPException(status_code=503, detail="请先在设置中填写你自己的 DeepSeek API Key")
     base = get_workspace(user["id"])
     included: list[dict[str, str]] = []
     for relative in dict.fromkeys(request.files):

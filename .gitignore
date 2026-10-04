@@ -23,6 +23,8 @@ zhangdeng-workspaces/
 .env
 .env.*
 !.env.example
+.stacklamp-settings.json
+.stacklamp-settings.json.tmp
 *.pem
 *.key
 secrets.json

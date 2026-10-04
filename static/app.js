@@ -77,7 +77,43 @@ async function submitAuth(register=false){
 }
 $("#authForm").addEventListener("submit",e=>{e.preventDefault();submitAuth(false);});
 $("#registerButton").addEventListener("click",()=>submitAuth(true));
-$("#settingsBtn").addEventListener("click",()=>$("#settingsDialog").showModal());
+function showApiKeyStatus(settings){
+  const status=$("#apiKeyStatus");
+  if(!settings.api_key_configured){status.textContent="尚未配置。填写你自己的 Key 后保存到本机。";return;}
+  status.textContent=settings.api_key_source==="environment"
+    ?"已从 DEEPSEEK_API_KEY 环境变量读取。"
+    :"已保存在本机用户配置目录中，不会提交到 GitHub。";
+}
+async function refreshLocalSettings(){
+  const settings=await api("/api/settings");
+  $("#settingsModel").textContent=settings.model||"deepseek-flash";
+  showApiKeyStatus(settings);
+}
+async function saveApiKey(){
+  const input=$("#deepseekApiKey"),button=$("#saveApiKey"),key=input.value.trim();
+  if(!key){$("#apiKeyStatus").textContent="请先粘贴 DeepSeek API Key。";input.focus();return;}
+  button.disabled=true;button.textContent="保存中…";
+  try{
+    const settings=await api("/api/settings",{method:"POST",body:JSON.stringify({deepseek_api_key:key})});
+    input.value="";$("#settingsModel").textContent=settings.model||"deepseek-flash";showApiKeyStatus(settings);
+    toast("API Key 已保存在本机");
+  }catch(err){$("#apiKeyStatus").textContent=err.message;}
+  finally{button.disabled=false;button.textContent="保存";}
+}
+$("#settingsForm").addEventListener("submit",event=>{event.preventDefault();saveApiKey();});
+$("#saveApiKey").addEventListener("click",saveApiKey);
+$("#settingsClose").addEventListener("click",()=>$("#settingsDialog").close());
+$("#settingsDone").addEventListener("click",()=>$("#settingsDialog").close());
+$("#settingsBtn").addEventListener("click",async()=>{
+  $("#settingsDialog").showModal();
+  if(state.publicMode){
+    $("#localApiSettings").hidden=true;
+    $("#settingsDescription").textContent="云端部署使用服务器环境变量中的 DeepSeek API Key。";
+    return;
+  }
+  $("#localApiSettings").hidden=false;
+  try{await refreshLocalSettings();}catch(err){$("#apiKeyStatus").textContent=err.message;}
+});
 $("#newChat").addEventListener("click",()=>{$("#messages").innerHTML="";$("#messages").classList.remove("active");$("#welcome").style.display="block";$("#prompt").value="";});
 $(".suggestions").addEventListener("click",e=>{const btn=e.target.closest(".suggestion");if(btn){$("#prompt").value=btn.dataset.prompt;$("#prompt").focus();resizeInput();}});
 function resizeInput(){const el=$("#prompt");el.style.height="auto";el.style.height=Math.min(el.scrollHeight,130)+"px";}
@@ -169,6 +205,7 @@ async function boot(){
     const configResponse=await fetch("/api/auth/config");const config=await configResponse.json();
     state.publicMode=Boolean(config.public_mode);
     if(state.publicMode){
+      $("#localApiSettings").hidden=true;
       $("#modeEyebrow").textContent="云端工作区";
       $("#modePill").innerHTML="<i></i> 云端工作区";
       $("#chooseFolder").innerHTML="<span>＋</span> 上传项目 ZIP";
@@ -192,8 +229,9 @@ async function boot(){
       return;
     }
     const session=await fetch("/api/session");const data=await session.json();state.token=data.token;
-    $("#settingsDescription").textContent="DeepSeek API Key 从服务端环境变量读取，不会发送到浏览器。";
+    $("#settingsDescription").textContent="填写你自己的 Key。栈灯会把它保存在本机用户配置目录中，并只在调用 DeepSeek 时使用。";
     $("#settingsModel").textContent=data.model||"deepseek-flash";
+    await refreshLocalSettings();
   }catch(err){toast(err.message||"无法连接服务，请稍后重试");}
 }
 boot();

@@ -48,7 +48,7 @@
     </main>
   </div>
   <div class="toast" id="toast"></div>
-  <dialog id="settingsDialog"><form method="dialog"><button class="dialog-close" aria-label="关闭">×</button><div class="dialog-kicker">连接设置</div><h2>DeepSeek 模型</h2><p>API Key 从服务端环境变量读取，不会发送到浏览器。</p><div class="setting-row"><span>API Key</span><code>DEEPSEEK_API_KEY</code></div><div class="setting-row"><span>模型名称</span><code>DEEPSEEK_MODEL</code></div><div class="dialog-tip">默认模型：deepseek-flash。修改环境变量后，重新启动栈灯。</div><button class="dialog-done">完成</button></form></dialog>
+  <dialog id="settingsDialog"><form method="dialog"><button class="dialog-close" aria-label="关闭">×</button><div class="dialog-kicker">本机设置</div><h2>DeepSeek API Key</h2><p>填写自己的 API Key，栈灯会保存在本机用户配置目录中。</p><label class="setting-label" for="deepseekApiKey">你的 API Key</label><div class="api-key-entry"><input id="deepseekApiKey" type="password" placeholder="粘贴 DeepSeek API Key"><button type="button">保存</button></div><div class="api-key-status">Key 不会提交到项目仓库；你勾选的代码会发送给 DeepSeek。</div><div class="setting-row"><span>当前模型</span><code>deepseek-flash</code></div><button class="dialog-done">完成</button></form></dialog>
 
 </body>
 </html>
