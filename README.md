@@ -20,7 +20,7 @@ In PowerShell, run:
 ```powershell
 $env:DEEPSEEK_API_KEY = "your DeepSeek API key"
 Set-Location "path\to\local-coding-assistant"
-.\启动助手.ps1
+.\start.ps1
 ```
 
 Stack Lamp opens `http://127.0.0.1:8765`. The default model is `deepseek-flash`, and the API base URL is `https://api.deepseek.com`. You can set `DEEPSEEK_MODEL`, `DEEPSEEK_BASE_URL`, or `DEEPSEEK_REASONING_EFFORT` before launch. See [`.env.example`](.env.example) for the available variables. Never commit a real API key to GitHub.
