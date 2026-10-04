@@ -342,7 +342,8 @@ def index():
 @app.get("/api/auth/config")
 def auth_config():
     return {"public_mode": PUBLIC_MODE,
-            "auth_enabled": (AUTH_READY and QUOTA_READY) if PUBLIC_MODE else False}
+            "auth_enabled": (AUTH_READY and QUOTA_READY) if PUBLIC_MODE else False,
+            "model": os.environ.get("DEEPSEEK_MODEL", "deepseek-flash")}
 
 
 @app.post("/api/auth/register")
@@ -447,8 +448,10 @@ def me(user: dict[str, Any] = Depends(current_user)):
 @app.get("/api/session")
 def get_session():
     if PUBLIC_MODE:
-        return {"public_mode": True}
-    return {"token": SESSION_TOKEN, "public_mode": False}
+        return {"public_mode": True,
+                "model": os.environ.get("DEEPSEEK_MODEL", "deepseek-flash")}
+    return {"token": SESSION_TOKEN, "public_mode": False,
+            "model": os.environ.get("DEEPSEEK_MODEL", "deepseek-flash")}
 
 
 @app.post("/api/pick-folder")
@@ -573,8 +576,9 @@ def read_file(path: str, user: dict[str, Any] = Depends(current_user)):
 
 @app.post("/api/chat")
 def chat(request: ChatRequest, user: dict[str, Any] = Depends(current_user)):
-    if not os.environ.get("OPENAI_API_KEY"):
-        raise HTTPException(status_code=503, detail="服务端尚未配置模型服务密钥")
+    api_key = os.environ.get("DEEPSEEK_API_KEY")
+    if not api_key:
+        raise HTTPException(status_code=503, detail="请先配置 DEEPSEEK_API_KEY，再重启栈灯")
     base = get_workspace(user["id"])
     included: list[dict[str, str]] = []
     for relative in dict.fromkeys(request.files):
@@ -590,12 +594,13 @@ def chat(request: ChatRequest, user: dict[str, Any] = Depends(current_user)):
             included.pop()
             break
     quota = reserve_request(user["id"])
-    model = os.environ.get("OPENAI_MODEL", "gpt-5.6-luna")
-    effort = os.environ.get("OPENAI_REASONING_EFFORT", "low")
+    model = os.environ.get("DEEPSEEK_MODEL", "deepseek-flash")
+    effort = os.environ.get("DEEPSEEK_REASONING_EFFORT", "low")
     instructions = (
-        "你是栈灯 AI 编程助手。根据用户请求和提供的文件内容给出回答。"
-        "必须只输出一个 JSON 对象，结构为 {\"message\":\"中文说明\",\"edits\":[{\"path\":\"项目相对路径\",\"content\":\"修改后的完整文件内容\"}]}. "
-        "无需修改时 edits 为空。不要添加 Markdown 代码围栏。只修改用户提供的文件；不执行命令，不捏造文件内容。"
+        "你是栈灯，一名熟悉中国大陆软件开发场景的中文 AI 编程搭档。默认使用简体中文，表达直接、清楚、务实，像和同事做代码评审；保留常见英文技术术语。"
+        "先理解用户要解决的问题，再结合已提供的文件给出可执行的方案。信息不足且会影响实现时再提问；不要空泛寒暄、夸张承诺或重复用户的话。"
+        "必须只输出一个 JSON 对象，结构为 {\"message\":\"简体中文说明\",\"edits\":[{\"path\":\"项目相对路径\",\"content\":\"修改后的完整文件内容\"}]}. "
+        "说明改了什么，以及需要用户留意的配置或边界。无需修改时 edits 为空。不要添加 Markdown 代码围栏。只修改用户提供的文件；不执行命令，不捏造文件内容。"
     )
     payload = {"request": request.message, "files": included}
 
@@ -604,20 +609,18 @@ def chat(request: ChatRequest, user: dict[str, Any] = Depends(current_user)):
 
     def generate():
         try:
-            options: dict[str, Any] = {}
-            if model.startswith("gpt-5") or model.startswith("o"):
-                options["reasoning"] = {"effort": effort}
-            client_options: dict[str, Any] = {}
-            if os.environ.get("OPENAI_BASE_URL"):
-                client_options["base_url"] = os.environ["OPENAI_BASE_URL"]
-            client = OpenAI(**client_options)
+            client = OpenAI(
+                api_key=api_key,
+                base_url=os.environ.get("DEEPSEEK_BASE_URL", "https://api.deepseek.com"),
+            )
             stream = client.responses.create(
                 model=model,
                 instructions=instructions,
                 input=json.dumps(payload, ensure_ascii=False),
                 stream=True,
                 max_output_tokens=4000,
-                **options,
+                text={"format": {"type": "json_object"}},
+                reasoning={"effort": effort},
             )
             pieces: list[str] = []
             for event in stream:

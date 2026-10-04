@@ -42,9 +42,9 @@ if (-not (Test-Path -LiteralPath (Join-Path $depsDir 'fastapi\__init__.py'))) {
 }
 
 $env:PYTHONPATH = $depsDir
-if (-not $env:OPENAI_API_KEY) {
-    Write-Warning 'OPENAI_API_KEY 尚未设置；页面可打开，但发送 AI 请求前需要配置密钥并重新启动。'
+if (-not $env:DEEPSEEK_API_KEY) {
+    Write-Warning '尚未设置 DEEPSEEK_API_KEY；页面可以打开，请在启动前配置 DeepSeek API Key。'
 }
-Write-Host '助手已启动： http://127.0.0.1:8765' -ForegroundColor Green
-Start-Process 'http://127.0.0.1:8765/?build=20261003-2'
+Write-Host '栈灯已启动： http://127.0.0.1:8765' -ForegroundColor Green
+Start-Process 'http://127.0.0.1:8765/?build=20261004-deepseek1'
 & $python -m uvicorn app:app --host 127.0.0.1 --port 8765

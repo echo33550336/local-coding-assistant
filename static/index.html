@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <title>栈灯 · AI 编程助手</title>
-  <link rel="stylesheet" href="/static/style.css?v=20261003-cloud1">
+  <link rel="stylesheet" href="/static/style.css?v=20261004-deepseek1">
 </head>
 <body>
   <div class="app-shell">
@@ -11,10 +11,10 @@
       <div class="brand-mark">栈</div>
       <button class="rail-icon active" title="工作区">▦</button>
       <button class="rail-icon" title="设置" id="settingsBtn">⚙</button>
-      <div class="rail-bottom">LOCAL</div>
+      <div class="rail-bottom">本机</div>
     </aside>
     <aside class="sidebar">
-      <div class="sidebar-head"><div><span class="eyebrow" id="modeEyebrow">LOCAL WORKSPACE</span><h1>栈灯</h1><div class="brand-subtitle">AI 编程助手</div></div><span class="status-dot" title="安全工作区"></span></div>
+      <div class="sidebar-head"><div><span class="eyebrow" id="modeEyebrow">本地工作区</span><h1>栈灯</h1><div class="brand-subtitle">AI 编程搭档</div></div><span class="status-dot" title="安全工作区"></span></div>
       <button class="choose-button" id="chooseFolder"><span>＋</span> 选择项目文件夹</button>
       <input id="projectZip" type="file" accept=".zip,application/zip" hidden>
       <div class="workspace-path" id="workspacePath">尚未选择文件夹</div>
@@ -34,19 +34,19 @@
             <svg viewBox="0 0 120 78" role="presentation"><defs><linearGradient id="shipHull" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#edf4ff"/><stop offset=".55" stop-color="#a9bdff"/><stop offset="1" stop-color="#927ee7"/></linearGradient><linearGradient id="shipTrail" x1="0" x2="1"><stop stop-color="#80d7ff" stop-opacity="0"/><stop offset="1" stop-color="#80d7ff" stop-opacity=".8"/></linearGradient></defs><path d="M3 53h25" stroke="url(#shipTrail)" stroke-width="3" stroke-linecap="round"/><path d="M14 62h17" stroke="url(#shipTrail)" stroke-width="2" stroke-linecap="round"/><path d="M43 45c11-20 29-29 56-29-2 23-13 41-34 52l-22-23z" fill="url(#shipHull)" stroke="#dce8ff" stroke-width="1.5"/><path d="M46 46 31 43l8 18 13-4M65 59l2 14 15-12" fill="#8798e6" stroke="#c5d2ff" stroke-width="1.5" stroke-linejoin="round"/><ellipse cx="76" cy="37" rx="9" ry="6" transform="rotate(-33 76 37)" fill="#253d70" stroke="#bdeaff" stroke-width="2"/><circle cx="77" cy="36" r="2" fill="#baf1ff"/><path d="m100 12 3-7 3 7 7 3-7 3-3 7-3-7-7-3z" fill="#d9c3ff"/></svg>
           </div>
           <div class="welcome-icon"><span>⌘</span><i>✳</i></div>
-          <div class="welcome-kicker">栈灯 · 星河代码伙伴</div>
-          <h2>让<strong>栈灯</strong>陪你<br><em>把灵感写进代码。</em></h2>
-          <p>选择项目文件夹，勾选想让助手参考的文件，然后描述你要完成的任务。</p>
+          <div class="welcome-kicker">栈灯 · AI 编程搭档</div>
+          <h2>把需求说清楚，<br><em>让改动可审查。</em></h2>
+          <p>选择项目目录，勾选要提供给 AI 的文件，再描述你的需求。先看 diff，确认后再写入。</p>
           <div class="suggestions">
-            <button class="suggestion" data-prompt="帮我梳理这个项目的结构，并指出最重要的入口文件。"><span>⌘</span><div><b>理解项目</b><small>梳理结构与关键入口</small></div><span class="arrow">↗</span></button>
-            <button class="suggestion" data-prompt="检查所选文件，找出明显的 bug 或可以改进的地方，并给出修改建议。"><span>⌕</span><div><b>检查代码</b><small>寻找问题与改进空间</small></div><span class="arrow">↗</span></button>
-            <button class="suggestion" data-prompt="为这个项目补充清晰的注释和文档，尽量保持现有风格。"><span>✎</span><div><b>补充文档</b><small>让代码更容易理解</small></div><span class="arrow">↗</span></button>
+            <button class="suggestion" data-prompt="先梳理这个项目的目录结构、启动入口和主要调用链，结论尽量结合文件说明。"><span>⌘</span><div><b>梳理项目</b><small>入口、模块和调用关系</small></div><span class="arrow">↗</span></button>
+            <button class="suggestion" data-prompt="检查我选中的文件，优先找可能导致错误或安全问题的点。说明原因，并给出必要的修改。"><span>⌕</span><div><b>代码走查</b><small>定位问题并说明依据</small></div><span class="arrow">↗</span></button>
+            <button class="suggestion" data-prompt="为选中的文件补充必要的中文注释或文档，保留项目现有的命名和代码风格。"><span>✎</span><div><b>补充说明</b><small>贴合现有项目风格</small></div><span class="arrow">↗</span></button>
           </div>
         </div>
         <div class="messages" id="messages"></div>
         <div class="composer-wrap">
           <form class="composer" id="chatForm">
-            <textarea id="prompt" rows="1" placeholder="描述你想完成的编程任务…" disabled></textarea>
+            <textarea id="prompt" rows="1" placeholder="例如：修复这个报错，并解释改动原因…" disabled></textarea>
             <div class="composer-bottom"><div class="composer-hint"><span>↳</span> 修改建议会先展示供你审阅</div><button class="send-button" id="sendBtn" type="submit" disabled><span>发送</span><b>↑</b></button></div>
           </form>
           <div class="composer-note">AI 生成的内容可能需要检查。应用修改前请先查看差异。</div>
@@ -67,10 +67,10 @@
       <div class="auth-error" id="authError" role="status"></div>
       <button class="send-button auth-submit" type="submit" id="authSubmit">登录</button>
       <button class="auth-register" type="button" id="registerButton">创建账号</button>
-      <small>注册后可上传项目 ZIP。项目临时保存在服务器并按账号隔离；只有你勾选的文件会发送给当前配置的 AI 模型服务处理。</small>
+      <small>注册后可上传项目 ZIP。文件按账号隔离并临时保存在服务器；只有你勾选的文件会发送给部署时配置的 DeepSeek 服务。</small>
     </form>
   </div>
-  <dialog id="settingsDialog"><form method="dialog"><button class="dialog-close" aria-label="关闭">×</button><div class="dialog-kicker">连接设置</div><h2>模型接口</h2><p id="settingsDescription">模型密钥只由服务器保管，不会发送到浏览器。</p><div class="setting-row"><span>当前模型</span><code id="settingsModel">由服务器配置</code></div><div class="dialog-tip">每次请求只会发送你勾选的文件。应用修改前请检查差异。</div><button class="dialog-done">完成</button></form></dialog>
-  <script src="/static/app.js?v=20261003-cloud1"></script>
+  <dialog id="settingsDialog"><form method="dialog"><button class="dialog-close" aria-label="关闭">×</button><div class="dialog-kicker">连接设置</div><h2>DeepSeek 模型</h2><p id="settingsDescription">API Key 只从服务端环境变量读取，不会发送到浏览器。</p><div class="setting-row"><span>当前模型</span><code id="settingsModel">deepseek-flash</code></div><div class="dialog-tip">每次请求只会发送你勾选的文件。应用前先检查 diff。</div><button class="dialog-done">完成</button></form></dialog>
+  <script src="/static/app.js?v=20261004-deepseek1"></script>
 </body>
 </html>

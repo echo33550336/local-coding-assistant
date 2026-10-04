@@ -169,14 +169,14 @@ async function boot(){
     const configResponse=await fetch("/api/auth/config");const config=await configResponse.json();
     state.publicMode=Boolean(config.public_mode);
     if(state.publicMode){
-      $("#modeEyebrow").textContent="PRIVATE CLOUD WORKSPACE";
+      $("#modeEyebrow").textContent="云端工作区";
       $("#modePill").innerHTML="<i></i> 云端工作区";
       $("#chooseFolder").innerHTML="<span>＋</span> 上传项目 ZIP";
       $("#sidebarSafety").textContent="ZIP 临时隔离保存，24 小时无访问后清除";
-      $("#welcome p").textContent="上传项目 ZIP 开始使用。项目会按账号隔离并临时保存在服务器；只有你勾选的文件会发送给 AI 模型。";
+      $("#welcome p").textContent="上传项目 ZIP 开始使用。文件按账号隔离并临时保存；只有你勾选的文件会发送给 DeepSeek。先检查 diff，确认后再应用。";
       $("#accountButton").textContent="账";$("#accountButton").title="点击退出账号";
-      $("#settingsDescription").textContent="模型密钥只由服务器保管，不会发送到浏览器。";
-      $("#settingsModel").textContent="由服务器配置";
+      $("#settingsDescription").textContent="DeepSeek API Key 只保存在服务端环境变量中，不会发送到浏览器。";
+      $("#settingsModel").textContent=config.model||"deepseek-flash";
       if(!config.auth_enabled){$("#authError").textContent="服务暂未完成登录配置，请稍后再试。";$("#authGate").hidden=false;return;}
       const query=new URLSearchParams(location.search),tokenHash=query.get("token_hash"),verifyType=query.get("type");
       if(tokenHash&&["signup","email"].includes(verifyType)){
@@ -192,6 +192,8 @@ async function boot(){
       return;
     }
     const session=await fetch("/api/session");const data=await session.json();state.token=data.token;
+    $("#settingsDescription").textContent="DeepSeek API Key 从服务端环境变量读取，不会发送到浏览器。";
+    $("#settingsModel").textContent=data.model||"deepseek-flash";
   }catch(err){toast(err.message||"无法连接服务，请稍后重试");}
 }
 boot();
