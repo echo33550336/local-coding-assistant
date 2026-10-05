@@ -118,7 +118,7 @@ class WorkspaceRequest(BaseModel):
 
 class ChatRequest(BaseModel):
     message: str = Field(min_length=1, max_length=12000)
-    files: list[str] = Field(default_factory=list, max_length=15)
+    files: list[str] = Field(default_factory=list)
 
 
 class ApplyRequest(BaseModel):
@@ -276,9 +276,9 @@ def is_allowed_text(path: Path) -> bool:
     }
 
 
-def list_files(base: Path) -> list[str]:
+def list_files(base: Path, *, root: Path | None = None) -> list[str]:
     found: list[str] = []
-    for current, dirs, names in os.walk(base, followlinks=False):
+    for current, dirs, names in os.walk(root or base, followlinks=False):
         dirs[:] = [d for d in dirs if d not in OMIT_DIRS and not (Path(current) / d).is_symlink()]
         for name in names:
             file_path = Path(current) / name
@@ -289,9 +289,25 @@ def list_files(base: Path) -> list[str]:
                     found.append(file_path.relative_to(base).as_posix())
             except OSError:
                 continue
-            if len(found) >= 1000:
-                return sorted(found)
     return sorted(found)
+
+
+def expand_selected_files(base: Path, paths: list[str]) -> list[str]:
+    expanded: list[str] = []
+    seen: set[str] = set()
+    for relative in dict.fromkeys(paths):
+        target = safe_file(base, relative)
+        if target.is_dir():
+            candidates = list_files(base, root=target)
+        elif target.is_file() and is_allowed_text(target) and target.stat().st_size <= 300_000:
+            candidates = [target.relative_to(base).as_posix()]
+        else:
+            continue
+        for candidate in candidates:
+            if candidate not in seen:
+                expanded.append(candidate)
+                seen.add(candidate)
+    return sorted(expanded)
 
 
 def replace_workspace(user_id: str, extracted: Path) -> None:
@@ -655,7 +671,7 @@ def chat(request: ChatRequest, user: dict[str, Any] = Depends(current_user)):
         raise HTTPException(status_code=503, detail="请先填写 API 接口地址和模型名称")
     base = get_workspace(user["id"])
     included: list[dict[str, str]] = []
-    for relative in dict.fromkeys(request.files):
+    for relative in expand_selected_files(base, request.files):
         target = safe_file(base, relative)
         if not is_allowed_text(target) or target.stat().st_size > 120_000:
             continue

@@ -31,6 +31,10 @@ The API settings are stored in a per-user configuration directory outside the pr
 
 Only the text files you select are sent to the configured model provider. Do not select files containing passwords, access tokens, customer data, or other sensitive information. Model output can be incorrect; review the diff before applying it.
 
+### Large projects and directory selection
+
+The project file list and chat request do not impose a file-count limit. The existing web interface still selects files individually. API clients may pass a project-relative directory path in the `files` array to include all supported text files in that directory and its non-ignored subdirectories. For example, `["src", "README.md"]` includes supported files under `src/` plus the root `README.md`. Ignored dependency/build directories, symlinks, unsupported files, and files over 300 KB are excluded. Each file included in the model context must also be no larger than 120 KB, and the total context is capped at 500 KB.
+
 The configured provider must support the OpenAI Responses API format and the parameters listed above. Check your provider's documentation for the correct API base URL and model name. Stack Lamp does not choose or bundle a model provider.
 
 ## Optional Cloud Mode
